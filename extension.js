@@ -11,7 +11,7 @@ function _hideHello() {
 
 function _showHello() {
     if (!text) {
-        text = new St.Label({ style_class: 'helloworld-label', text: "Hello, world!" });
+        text = new St.Label({ style_class: 'helloworld-label', text: "I'm an extension" });
         Main.uiGroup.add_actor(text);
     }
 

@@ -1,1 +1,6 @@
-{"name": "Notify full battery", "description": "Notifies when battery is full", "uuid": "fullbattery@categulario.tk", "shell-version": ["3.28.3"]}
+{
+    "name": "Full Battery indicator",
+    "description": "Notifies when battery is full",
+    "uuid": "fullbattery@categulario.tk",
+    "shell-version": ["3.28.3"]
+}
