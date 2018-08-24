@@ -1,46 +1,61 @@
 const St = imports.gi.St;
 const Main = imports.ui.main;
-const Tweener = imports.ui.tweener;
+const MessageTray = imports.ui.messageTray;
 
-let text, button;
+let button, _notifSource;
 
-function _hideHello() {
-    Main.uiGroup.remove_actor(text);
-    text = null;
+const INDICATOR_ICON = 'battery-full-charged-symbolic';
+
+function _initNotifSource() {
+    if (!_notifSource) {
+        _notifSource = new MessageTray.Source('ClipboardIndicator',
+                                INDICATOR_ICON);
+        _notifSource.connect('destroy', function() {
+            _notifSource = null;
+        });
+        Main.messageTray.add(_notifSource);
+    }
+}
+
+function _showNotification(message) {
+    let notification = null;
+
+    _initNotifSource();
+
+    if (_notifSource.count === 0) {
+        notification = new MessageTray.Notification(_notifSource, message);
+        notification.urgency = MessageTray.Urgency.CRITICAL;
+    }
+    else {
+        notification = _notifSource.notifications[0];
+        notification.update(message, '', { clear: true });
+    }
+
+    notification.setTransient(true);
+    _notifSource.notify(notification);
 }
 
 function _showHello() {
-    if (!text) {
-        text = new St.Label({ style_class: 'helloworld-label', text: "I'm an extension" });
-        Main.uiGroup.add_actor(text);
-    }
-
-    text.opacity = 255;
-
-    let monitor = Main.layoutManager.primaryMonitor;
-
-    text.set_position(monitor.x + Math.floor(monitor.width / 2 - text.width / 2),
-                      monitor.y + Math.floor(monitor.height / 2 - text.height / 2));
-
-    Tweener.addTween(text,
-                     { opacity: 0,
-                       time: 2,
-                       transition: 'easeOutQuad',
-                       onComplete: _hideHello });
+  _showNotification('Batería completamente cargada, desconecta el cargador');
 }
 
 function init() {
-    button = new St.Bin({ style_class: 'panel-button',
-                          reactive: true,
-                          can_focus: true,
-                          x_fill: true,
-                          y_fill: false,
-                          track_hover: true });
-    let icon = new St.Icon({ icon_name: 'system-run-symbolic',
-                             style_class: 'system-status-icon' });
+  button = new St.Bin({
+    style_class: 'panel-button',
+    reactive: true,
+    can_focus: true,
+    x_fill: true,
+    y_fill: false,
+    track_hover: true,
+  });
 
-    button.set_child(icon);
-    button.connect('button-press-event', _showHello);
+  let icon = new St.Icon({
+    icon_name: 'system-run-symbolic',
+    style_class: 'system-status-icon',
+  });
+
+  button.set_child(icon);
+  button.connect('button-press-event', _showHello);
 }
 
 function enable() {
