@@ -1,10 +1,12 @@
-const St = imports.gi.St;
 const Main = imports.ui.main;
 const MessageTray = imports.ui.messageTray;
-
-let button, _notifSource;
+const PowerIndicator = Main.panel.statusArea.aggregateMenu._power;
 
 const INDICATOR_ICON = 'battery-full-charged-symbolic';
+
+let _notifSource = null;
+let signals = [];
+let data_method = "native";
 
 function _initNotifSource() {
     if (!_notifSource) {
@@ -24,9 +26,8 @@ function _showNotification(message) {
 
     if (_notifSource.count === 0) {
         notification = new MessageTray.Notification(_notifSource, message);
-        notification.urgency = MessageTray.Urgency.CRITICAL;
-    }
-    else {
+        notification.setUrgency(MessageTray.Urgency.CRITICAL);
+    } else {
         notification = _notifSource.notifications[0];
         notification.update(message, '', { clear: true });
     }
@@ -35,33 +36,97 @@ function _showNotification(message) {
     _notifSource.notify(notification);
 }
 
-function _showHello() {
-  _showNotification('Batería completamente cargada, desconecta el cargador');
+function read_battery() {
+  switch (data_method) {
+  default:
+  case "native":
+    return [PowerIndicator._proxy.TimeToEmpty,
+            PowerIndicator._proxy.TimeToFull,
+            PowerIndicator._proxy.Percentage,
+            PowerIndicator._proxy.IsPresent,
+            PowerIndicator._proxy.State];
+  case "device":
+    let devices = PowerIndicator._proxy.GetDevicesSync();
+    let n_devs = 0;
+    let is_present = false;
+    let tte_s = 0;
+    let ttf_s = 0;
+    let per_c = 0;
+    let out_state = UPower.DeviceState.EMPTY;
+
+    for (let i = 0; i < devices.length; ++i) {
+      for (let j = 0; j < devices[i].length; ++j) {
+        let [id, type, icon, percent, state, time] = devices[i][j];
+
+        if (type != UPower.DeviceKind.BATTERY) {
+          continue;
+        }
+
+        ++n_devs;
+
+        is_present  = true;
+        tte_s      += time;
+        ttf_s       = tte_s;
+        // Round the total percentage for multiple batteries
+        per_c       = ((per_c * (n_devs - 1)) + percent) / n_devs;
+
+        // charging > discharging > full > empty
+        // Ignore the other states.
+
+        switch (state) {
+        case UPower.DeviceState.DISCHARGING:
+        case UPower.DeviceState.PENDING_DISCHARGE:
+          if (out_state != UPower.DeviceState.CHARGING) {
+            out_state = UPower.DeviceState.DISCHARGING;
+          }
+          break;
+        case UPower.DeviceState.CHARGING:
+        case UPower.DeviceState.PENDING_CHARGE:
+          out_state = UPower.DeviceState.CHARGING;
+          break;
+        case UPower.DeviceState.FULLY_CHARGED:
+          if (out_state != UPower.DeviceState.CHARGING
+              && out_state != UPower.DeviceState.DISCHARGING) {
+            out_state = UPower.DeviceState.FULLY_CHARGED;
+          }
+          break;
+        default:
+          break;
+        }
+      }
+    }
+
+    return [tte_s, ttf_s, per_c, is_present, out_state];
+  }
+}
+
+function _update() {
+  let [tte_s, ttf_s, per_c, is_present, state] = read_battery();
+
+  if (Math.abs(100-per_c) < 1) {
+    _showNotification('Batería completamente cargada, desconecta el cargador');
+  }
 }
 
 function init() {
-  button = new St.Bin({
-    style_class: 'panel-button',
-    reactive: true,
-    can_focus: true,
-    x_fill: true,
-    y_fill: false,
-    track_hover: true,
-  });
-
-  let icon = new St.Icon({
-    icon_name: 'system-run-symbolic',
-    style_class: 'system-status-icon',
-  });
-
-  button.set_child(icon);
-  button.connect('button-press-event', _showHello);
 }
 
 function enable() {
-    Main.panel._rightBox.insert_child_at_index(button, 0);
+  if ("GetDevicesSync" in PowerIndicator._proxy) {
+    data_method = "device";
+  } else {
+    data_method = "native";
+  }
+
+  signals.push([
+    PowerIndicator._proxy,
+    PowerIndicator._proxy.connect('g-properties-changed', _update),
+  ]);
 }
 
 function disable() {
-    Main.panel._rightBox.remove_child(button);
+  while (signals.length > 0) {
+    let [obj, sig] = signals.pop();
+    obj.disconnect(sig);
+  }
 }
