@@ -1,6 +1,10 @@
 const Main = imports.ui.main;
 const MessageTray = imports.ui.messageTray;
 const PowerIndicator = Main.panel.statusArea.aggregateMenu._power;
+const Gettext = imports.gettext;
+const _ = Gettext.domain('fullbattery').gettext;
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
 
 const INDICATOR_ICON = 'battery-full-charged-symbolic';
 
@@ -104,11 +108,13 @@ function _update() {
   let [tte_s, ttf_s, per_c, is_present, state] = read_battery();
 
   if (Math.abs(100-per_c) < 1) {
-    _showNotification('Batería completamente cargada, desconecta el cargador');
+    _showNotification(_('Battery fully charged. Disconnect charger'));
   }
 }
 
 function init() {
+  let localeDir = Me.dir.get_child('locale');
+  Gettext.bindtextdomain('fullbattery', localeDir.get_path());
 }
 
 function enable() {
