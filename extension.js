@@ -107,7 +107,7 @@ function read_battery() {
 function _update() {
   let [tte_s, ttf_s, per_c, is_present, state] = read_battery();
 
-  if (Math.abs(100-per_c) < 1) {
+  if (state == UPower.DeviceState.FULLY_CHARGED) {
     _showNotification(_('Battery fully charged. Disconnect charger'));
   }
 }
