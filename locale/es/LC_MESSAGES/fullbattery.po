@@ -17,9 +17,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: extension.js:187
+#: extension.js:130
 msgid "Battery fully charged. Disconnect charger"
 msgstr "Batería completamente cargada, desconecta el cargador"
 
-msgid "test message"
-msgstr "mensaje de prueba"
+#: extension.js:132
+msgid "Battery close to full charge: %d%%"
+msgstr "Batería cerca de carga completa: %d%%"

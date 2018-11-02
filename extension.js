@@ -12,11 +12,11 @@ const INDICATOR_ICON = 'battery-full-charged-symbolic';
 let _notifSource = null;
 let signals = [];
 let data_method = "native";
+let notification = null;
 
 function _initNotifSource() {
     if (!_notifSource) {
-        _notifSource = new MessageTray.Source('ClipboardIndicator',
-                                INDICATOR_ICON);
+        _notifSource = new MessageTray.Source('FullBatteryIndicator', INDICATOR_ICON);
         _notifSource.connect('destroy', function() {
             _notifSource = null;
         });
@@ -24,21 +24,31 @@ function _initNotifSource() {
     }
 }
 
-function _showNotification(message) {
-    let notification = null;
-
+function _showNotification(message, urgent) {
     _initNotifSource();
 
     if (_notifSource.count === 0) {
         notification = new MessageTray.Notification(_notifSource, message);
-        notification.setUrgency(MessageTray.Urgency.CRITICAL);
     } else {
         notification = _notifSource.notifications[0];
         notification.update(message, '', { clear: true });
     }
 
+    if (urgent) {
+      notification.setUrgency(MessageTray.Urgency.CRITICAL);
+    } else {
+      notification.setUrgency(MessageTray.Urgency.NORMAL);
+    }
+
     notification.setTransient(true);
     _notifSource.notify(notification);
+}
+
+function _hideNotification() {
+  if (notification) {
+    notification.destroy(MessageTray.NotificationDestroyedReason.SOURCE_CLOSED);
+    notification = null;
+  }
 }
 
 function read_battery() {
@@ -116,8 +126,12 @@ function _update() {
   PENDING_DISCHARGE : 6
   */
 
-  if (Math.abs(100-per_c) < 5 && state == UPower.DeviceState.CHARGING) {
-    _showNotification(_('Battery fully charged. Disconnect charger'));
+  if (state == UPower.DeviceState.FULLY_CHARGED) {
+    _showNotification(_('Battery fully charged. Disconnect charger'), true);
+  } else if (state == UPower.DeviceState.CHARGING && Math.abs(100-per_c) < 3){
+    _showNotification(_('Battery close to full charge: %d%%').format(per_c));
+  } else {
+    _hideNotification();
   }
 }
 
