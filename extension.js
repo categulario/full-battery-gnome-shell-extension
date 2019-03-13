@@ -126,7 +126,7 @@ function _update() {
   PENDING_DISCHARGE : 6
   */
 
-  if (state == UPower.DeviceState.FULLY_CHARGED) {
+  if (state == UPower.DeviceState.FULLY_CHARGED || per_c == 100) {
     _showNotification(_('Battery fully charged. Disconnect charger'), true);
   } else if (state == UPower.DeviceState.CHARGING && Math.abs(100-per_c) < 3){
     _showNotification(_('Battery close to full charge: %d%%').format(per_c));
