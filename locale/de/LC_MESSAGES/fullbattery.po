@@ -1,0 +1,26 @@
+# Spanish translation for fullbattery gome extension
+# Copyright (C) 2018 Abraham Toriz Cruz
+# This file is distributed under the same license as the fullbattery package.
+# Abraham Toriz <categulario@gmail.com>, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-03-30 16:08+0100\n"
+"PO-Revision-Date: 2020-03-30 16:16+0200\n"
+"Last-Translator: Abraham Toriz <categulario@gmail.com>\n"
+"Language-Team: Deutsch <>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: extension.js:130
+msgid "Battery fully charged. Disconnect charger"
+msgstr "Akku vollständig aufgeladen. Ladekabel entfernen"
+
+#: extension.js:132
+msgid "Battery close to full charge: %d%%"
+msgstr "Akku fast vollständig aufgeladen: %d%%"
