@@ -3,6 +3,10 @@
 Notifies when battery is full. The notification stays until manually dismissed
 (notification level: critical)
 
+## Get
+
+https://extensions.gnome.org/extension/1466/full-battery-indicator/
+
 ## Manual installation
 
 ```bash

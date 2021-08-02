@@ -2,11 +2,14 @@
     "name": "Full Battery indicator",
     "description": "Notifies when battery is full",
     "uuid": "fullbattery@categulario.tk",
+    "url": "https://github.com/categulario/full-battery-gnome-shell-extension",
     "shell-version": [
         "3.28.3",
         "3.30",
         "3.32",
         "3.34.4",
-        "3.36.0"
+        "3.36.0",
+        "3.38",
+        "40.3"
     ]
 }
