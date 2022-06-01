@@ -7,16 +7,24 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const UPower = imports.gi.UPowerGlib;
 
-const INDICATOR_ICON = 'battery-full-charged-symbolic';
+const BATTERY_FULL_ICON = 'battery-full-charged-symbolic';
+const BATTERY_LOW_ICON = 'battery-low-symbolic';
+
+const Gio = imports.gi.Gio;
+const fullBatterySound = Gio.File.new_for_path('/usr/share/sounds/Yaru/stereo/system-ready.oga');
+const lowBatterySound = Gio.File.new_for_path('/usr/share/sounds/Yaru/stereo/battery-low.oga');
 
 let _notifSource = null;
 let signals = [];
 let data_method = "native";
 let notification = null;
 
-function _initNotifSource() {
+function _initNotifSource(message) {
     if (!_notifSource) {
-        _notifSource = new MessageTray.Source('FullBatteryIndicator', INDICATOR_ICON);
+        _notifSource = new MessageTray.Source('FullBatteryIndicator', BATTERY_FULL_ICON);
+    	if (message.includes('low')) {
+        	_notifSource = new MessageTray.Source('LowBatteryIndicator', BATTERY_LOW_ICON);
+    	}
         _notifSource.connect('destroy', function() {
             _notifSource = null;
         });
@@ -25,7 +33,7 @@ function _initNotifSource() {
 }
 
 function _showNotification(message, urgent) {
-    _initNotifSource();
+    _initNotifSource(message);
 
     if (_notifSource.count === 0) {
         notification = new MessageTray.Notification(_notifSource, message);
@@ -39,7 +47,15 @@ function _showNotification(message, urgent) {
     } else {
       notification.setUrgency(MessageTray.Urgency.NORMAL);
     }
-
+    
+    let player = global.display.get_sound_player();
+    
+    if (message.includes('low')) {
+    	player.play_from_file(lowBatterySound, 'Connect charger!', null);
+    } else {
+    	player.play_from_file(fullBatterySound, 'Disconnect charger!', null);
+    }
+    
     notification.setTransient(true);
     _notifSource.notify(notification);
 }
@@ -126,10 +142,12 @@ function _update() {
   PENDING_DISCHARGE : 6
   */
 
-  if (state == UPower.DeviceState.FULLY_CHARGED || per_c == 100) {
+  if (state == UPower.DeviceState.FULLY_CHARGED || per_c > 97) {
     _showNotification(_('Battery fully charged. Disconnect charger'), true);
-  } else if (state == UPower.DeviceState.CHARGING && Math.abs(100-per_c) < 3){
+  } else if (state == UPower.DeviceState.CHARGING && Math.abs(100-per_c) < 11){
     _showNotification(_('Battery close to full charge: %d%%').format(per_c));
+  } else if (state == UPower.DeviceState.DISCHARGING && per_c < 21){
+    _showNotification(_('Battery low: %d%%').format(per_c), true);
   } else {
     _hideNotification();
   }
