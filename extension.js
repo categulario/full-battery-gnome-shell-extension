@@ -11,8 +11,8 @@ const BATTERY_FULL_ICON = 'battery-full-charged-symbolic';
 const BATTERY_LOW_ICON = 'battery-low-symbolic';
 
 const Gio = imports.gi.Gio;
-const fullBatterySound = Gio.File.new_for_path('/usr/share/sounds/Yaru/stereo/system-ready.oga');
-const lowBatterySound = Gio.File.new_for_path('/usr/share/sounds/Yaru/stereo/battery-low.oga');
+const fullBatterySound = Gio.File.new_for_path('/usr/share/sounds/gnome/default/alerts/drip.ogg');
+const lowBatterySound = Gio.File.new_for_path('/usr/share/sounds/gnome/default/alerts/sonar.ogg');
 
 let _notifSource = null;
 let signals = [];
